@@ -1,0 +1,6 @@
+joblib
+numpy
+pandas
+google-generativeai
+scikit-learn
+bs4
