@@ -1,0 +1,7 @@
+INSERT INTO badges (title, description, img_url, badge_type, condition)
+VALUES
+    ('시간약속', '전체 출근 중 지각률 0%', '/badges/punctuality.png', 'PUNCTUALITY', 'lateness_rate=0'),
+    ('재고용', '동일 농가에서 2회 이상 재고용', '/badges/rehire.png', 'REHIRE', 'rehire_count>=2'),
+    ('성실', '근무 5회 이상, 결근 없이 완료, 농가 만족도 평균 85%이상', '/badges/diligence.png', 'DILIGENCE', 'work_count>=5 AND absence=0 AND avg_rating>=85'),
+    ('일당백', '근무 10회 이상, 결근 없이 완료, 농가 만족도 평균 90%이상', '/badges/allrounder.png', 'ALL_ROUNDER', 'work_count>=10 AND absence=0 AND avg_rating>=90'),
+    ('베테랑', '총근무 20회 이상, 농가 만족도 평균 95% 이상', '/badges/veteran.png', 'VETERAN', 'work_count>=20 AND avg_rating>=95');
