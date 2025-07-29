@@ -4,3 +4,5 @@ pandas
 google-generativeai
 scikit-learn
 bs4
+git+https://github.com/openai/whisper.git
+pyttsx3
