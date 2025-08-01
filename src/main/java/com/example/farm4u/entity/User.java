@@ -27,4 +27,9 @@ public class User extends BaseEntity {
     public enum Mode {
         WORKER, FARMER, ADMIN, ANONYMOUS;
     }
+
+    public void setCurrentMode(Mode currentMode) {
+        this.currentMode = currentMode;
+    }
+
 }

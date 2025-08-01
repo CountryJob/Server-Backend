@@ -8,6 +8,7 @@ import java.time.LocalTime;
 @AllArgsConstructor @Builder
 @NoArgsConstructor
 @Getter
+@Setter
 @Entity
 @Table(name = "job_postings") // TODO: indexes
 public class Job extends BaseEntity {
@@ -92,5 +93,9 @@ public class Job extends BaseEntity {
 
     @Column
     private Boolean deleted = false;
+
+    // aiScore은 동적으로 계산 -> DB에 매핑 제외
+    @Transient
+    private Double aiScore;
 
 }

@@ -3,11 +3,13 @@ package com.example.farm4u.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+@AllArgsConstructor
+@Builder
 @Entity
 @NoArgsConstructor
 @Getter
 @Table(name = "notifications") // TODO: indexes
-public class Notification {
+public class Notification extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

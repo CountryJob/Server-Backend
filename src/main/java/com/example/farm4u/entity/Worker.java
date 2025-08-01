@@ -9,7 +9,7 @@ import java.util.Set;
 
 @AllArgsConstructor @Builder
 @NoArgsConstructor
-@Getter
+@Getter @Setter
 @Entity
 @Table(name = "workers") // TODO: indexes
 public class Worker extends BaseEntity {
@@ -44,11 +44,13 @@ public class Worker extends BaseEntity {
     @Column(name = "work_type")
     private WorkType workType;
 
-    // work_days(SET) -> JPA의 컬렉션 매핑: worker_work_days(테이블) + work_day(컬럼) 조합
+    // work_days(SET) -> JPA의 컬렉션 매핑
+    // : worker_work_days(테이블) + work_day(컬럼) 조합
     // user_id : work_day 다대다 형식
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "worker_work_days", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "work_day")
+    @Enumerated(EnumType.STRING)
     private Set<WorkDay> workDays;
 
     @Column(name = "has_farm_exp")
@@ -57,17 +59,19 @@ public class Worker extends BaseEntity {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "worker_farm_exp_types", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "farm_exp_type")
+    @Enumerated(EnumType.STRING)
     private Set<FarmExpType> farmExpTypes;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable( name = "worker_farm_exp_tasks", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "farm_exp_task")
+    @Enumerated(EnumType.STRING)
     private Set<FarmExpTask> farmExpTasks;
 
     @Column(name = "work_intensity")
+    @Enumerated(EnumType.STRING)
     private WorkIntensity workIntensity;
 
-    //
     @Column(name = "avg_sincerity_rating", precision = 3, scale = 2)
     private BigDecimal avgSincerityRating;
 
@@ -83,12 +87,14 @@ public class Worker extends BaseEntity {
     @Column(name = "review_count", nullable = false)
     private Integer reviewCount = 0;
 
+    @Column(name = "report_count", nullable = false)
+    private Integer reportCount = 0;
+
     @Column(name = "trust_score", columnDefinition = "INT CHECK(trust_score BETWEEN 0 AND 100)")
     private Integer trustScore;
 
     @Column(nullable = false)
     private Boolean deleted = false;
-
 
     public enum Gender{ MALE, FEMALE }
     public enum WorkType{ SHORT, LONG, ANY }

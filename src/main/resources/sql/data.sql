@@ -1,4 +1,4 @@
-INSERT INTO badges (title, description, img_url, badge_type, condition)
+INSERT INTO badges (title, description, img_url, badge_type, badge_condition)
 VALUES
     ('시간약속', '전체 출근 중 지각률 0%', '/badges/punctuality.png', 'PUNCTUALITY', 'lateness_rate=0'),
     ('재고용', '동일 농가에서 2회 이상 재고용', '/badges/rehire.png', 'REHIRE', 'rehire_count>=2'),

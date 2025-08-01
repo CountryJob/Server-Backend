@@ -19,15 +19,24 @@ public class Like extends BaseEntity { // TODO: indexes
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 필드만
+    // 필드만 (like를 누른 사용자(worker))
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    // 필드만
+    // 필드만 (like 대상 공고)
     @Column(name = "job_id", nullable = false)
     private Long jobId;
 
     @Column(nullable = false)
     private Boolean deleted = false;
+
+    @PrePersist
+    protected void init() {
+        if (deleted == null) this.deleted = false;
+    }
+
+    public void setDeleted(Boolean deleted){
+        this.deleted = deleted;
+    }
 
 }

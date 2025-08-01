@@ -5,8 +5,9 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
+@AllArgsConstructor @Builder(toBuilder = true)
 @NoArgsConstructor
-@Getter
+@Getter @Setter
 @Entity
 @Table(name = "farmers") // TODO: indexes
 public class Farmer extends BaseEntity {
@@ -57,6 +58,9 @@ public class Farmer extends BaseEntity {
 
     @Column(name = "review_count", nullable = false)
     private Integer reviewCount = 0;
+
+    @Column(name = "report_count", nullable = false)
+    private Integer reportCount = 0;
 
     @Column(name = "trust_score", columnDefinition = "INT CHECK(trust_score BETWEEN 0 AND 100)")
     private Integer trustScore;

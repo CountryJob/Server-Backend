@@ -1,3 +1,6 @@
+### 빌드 결과물
+/target/
+/build/
 HELP.md
 .gradle
 build/
@@ -35,3 +38,29 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### log, sys, back-up
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# artifact/package
+*.jar
+*.war
+.gradle/
+.mvn/
+
+# tmp
+tmp/
+logs/
+
+# env
+src/main/resources/application.properties
+application.properties
+application-dev.properties
+application-prod.properties
+*.db
+local.properties
