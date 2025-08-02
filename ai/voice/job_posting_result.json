@@ -1,8 +1,8 @@
 {
   "work_type": "상추 수확",
-  "date_range": "2025-08-01 ~ 2025-08-03",
+  "date_range": "2024-08-01 ~ 2024-08-03",
   "time_range": "08:00 ~ 17:00",
-  "area_size": "50 제곱미터",
+  "area_size": "50",
   "provide_meal": true,
   "provide_snack": true,
   "provide_transport": false,
