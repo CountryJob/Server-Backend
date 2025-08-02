@@ -23,7 +23,6 @@ class AutoFilledResponse(BaseModel):
     meal: bool
     snack: bool
     transportAllowance: bool
-    addressMatch: bool
     description: str
     salaryMale: int
     salaryFemale: int
@@ -79,7 +78,6 @@ async def auto_filled_predict(audio_file: UploadFile = Form(...)):
             "meal": info["meal"],
             "snack": info["snack"],
             "transportAllowance": info["transport_allowance"],
-            "addressMatch": info["address_match"],
             "description": prediction["description"],
             "salaryMale": prediction["salary_male"],
             "salaryFemale": prediction["salary_female"],
