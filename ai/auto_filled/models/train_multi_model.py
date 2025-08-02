@@ -16,10 +16,10 @@ import re
 warnings.filterwarnings('ignore')
 
 # 1. 디렉토리 생성
-os.makedirs("ai/models", exist_ok=True)
+os.makedirs("ai/auto_filled/models", exist_ok=True)
 
 # 2. 데이터 로드
-df = pd.read_csv("ai/data/ilmoa_jobs2.csv")
+df = pd.read_csv("ai/auto_filled/data/ilmoa_jobs2.csv")
 print(f"원본 데이터 크기: {len(df)}")
 
 # 3. 모집 인원 추출
@@ -381,7 +381,7 @@ for i, target in enumerate(target_names):
         print(f"{target}: MAE={mae:.2f}, RMSE={np.sqrt(mse):.2f}, R²={r2:.3f}")
 
 # 18. 모델 저장
-joblib.dump(model, "ai/models/work_type_aware_model.pkl")
+joblib.dump(model, "ai/auto_filled/models/work_type_aware_model.pkl")
 
 # 19. 예측 테스트
 print("\n=== 예측 테스트 ===")
