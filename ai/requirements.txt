@@ -6,3 +6,9 @@ scikit-learn
 bs4
 git+https://github.com/openai/whisper.git
 pyttsx3
+fastapi
+uvicorn
+python-multipart
+dotenv
+pymysql
+transformers
