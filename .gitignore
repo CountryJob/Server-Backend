@@ -39,6 +39,10 @@ out/
 ### VS Code ###
 .vscode/
 
+### macOS ###
+.DS_Store
+.env
+farm4u.pem
 ### log, sys, back-up
 *.log
 *.tmp
