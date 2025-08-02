@@ -22,7 +22,6 @@ def summarize_to_json(transcribed: str):
     - meal: 점심 식사 제공 여부 (true/false)
     - snack: 간식 제공 여부 (true/false)
     - transport_allowance: 교통비 제공 여부 (true/false)
-    - address_match: 등록된 주소와 작업 장소가 일치하는지 (true/false)
 
     **주의사항**
     - 날짜와 시간은 명확하게 포맷에 맞춰주세요.
