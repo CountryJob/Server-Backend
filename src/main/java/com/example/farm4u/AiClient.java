@@ -194,7 +194,7 @@ public class AiClient {
         body.add("question_key", questionKey);
 
         // MultipartFile을 임시 파일로 변환
-        File tempFile = File.createTempFile("voice", ".m4a");
+        File tempFile = File.createTempFile("voice", ".webm");
         audioFile.transferTo(tempFile);
         FileSystemResource fileResource = new FileSystemResource(tempFile);
         body.add("audio", fileResource);

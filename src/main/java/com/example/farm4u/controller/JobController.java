@@ -39,6 +39,12 @@ public class JobController {
             @AuthenticationPrincipal Long userId,
             @RequestPart MultipartFile audioFile
     ) throws IOException {
+
+        if (audioFile.isEmpty()){
+            System.out.println("audioFile 파일이 없습니다.");
+            return ResponseEntity.badRequest().build();
+        }
+
         System.out.println("JobController: autoWriteJob(): userId = " + userId);
         JobDto created = jobService.autoWriteAndCreateJob(userId, audioFile);
         return ResponseEntity.ok(created);
