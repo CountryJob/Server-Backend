@@ -126,7 +126,6 @@ public class JobController {
 //            @RequestParam(value = "startDateTo", required = false) LocalDate startDateTo,
             @RequestParam(value = "sort", required = false) String sort
     ) {
-        System.out.println("job controller getJobList: userId: "+userId);
         List<JobDto> jobs = jobService.getJobList(userId,
 //                lat, lng, radius,
 //                experienceRequired, salaryMaleMin, salaryFemaleMin, startDateFrom, startDateTo,

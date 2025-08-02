@@ -1,10 +1,10 @@
 package com.example.farm4u;
 
+import com.example.farm4u.dto.ai.AutoJobResponse;
 import com.example.farm4u.dto.job.JobDto;
 import com.example.farm4u.dto.job.JobRequest;
 import com.example.farm4u.dto.review.ReviewDto;
 import com.example.farm4u.dto.worker.WorkerDto;
-import com.example.farm4u.entity.Worker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
@@ -145,7 +145,6 @@ public class AiClient {
     /**
      * req:
      *
-     * @param address
      * @param audioFile res:
      *                  {
      *                  "title": "상추 수확",
@@ -165,7 +164,7 @@ public class AiClient {
      *                  "recruitCountFemale": 1
      *                  }
      */
-    public JobDto autoWriteJob(String address, MultipartFile audioFile) throws IOException {
+    public AutoJobResponse autoWriteJob(MultipartFile audioFile) throws IOException {
         String url = aiServerBaseUrl + "/auto-filled/predict";
 
         File tempFile = File.createTempFile("audioFileTemp", ".m4a");
@@ -179,12 +178,10 @@ public class AiClient {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<JobDto> response = restTemplate.postForEntity(url, requestEntity, JobDto.class);
-        JobDto j = response.getBody();
-        j.setAddress(address);
+        ResponseEntity<AutoJobResponse> response = restTemplate.postForEntity(url, requestEntity, AutoJobResponse.class);
 
         tempFile.delete(); // 임시 파일 정리
-        return j;
+        return response.getBody();
     }
 
     // 사용X
