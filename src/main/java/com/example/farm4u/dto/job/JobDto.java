@@ -36,6 +36,8 @@ public class JobDto {
     private String updatedAt;                 // 수정일 (YYYY-MM-DD HH:mm:ss)
     private Boolean deleted;                  // 삭제여부
 
+    private Double aiScore;
+
     // 엔티티 → DTO 변환 생성자
     public JobDto(Job job) {
         this.id = job.getId();
@@ -66,5 +68,6 @@ public class JobDto {
         this.updatedAt = job.getUpdatedAt() != null
                 ? job.getUpdatedAt().toString() : null;
         this.deleted = job.getDeleted();
+        this.aiScore = job.getAiScore();
     }
 }

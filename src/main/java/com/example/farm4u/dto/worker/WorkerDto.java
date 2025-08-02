@@ -39,13 +39,11 @@ public class WorkerDto {
     private Double avgSkillRating;
     private Double avgRehireRating;
     private Integer reviewCount;
-    private Integer trustScore;         // 근로자 신뢰 점수(리뷰/평가 누적)
+    private Double aiScore;
 
     private String createdAt;            // YYYY-MM-DD HH:mm:ss
     private String updatedAt;
     private Boolean deleted;
-
-    private Double aiScore;               // 농가-지원자 AI 매칭 점수(지원자 리스트/추천시만 세팅, 그외 null)
 
     public WorkerDto(Worker worker) {
         this.userId = worker.getUserId();
@@ -76,12 +74,11 @@ public class WorkerDto {
         this.avgRehireRating = (worker.getAvgRehireRating() != null) ? worker.getAvgRehireRating().doubleValue() : null;
 
         this.reviewCount = worker.getReviewCount();
-        this.trustScore = worker.getTrustScore();
+        this.aiScore = (worker.getAiScore()!=null)? worker.getAiScore() : null;
         this.createdAt = (worker.getCreatedAt() != null)
                 ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(worker.getCreatedAt()) : null;
         this.updatedAt = (worker.getUpdatedAt() != null)
                 ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(worker.getUpdatedAt()) : null;
         this.deleted = worker.getDeleted();
-        // aiScore: 사용 시 별도 setter 호출 필요
     }
 }

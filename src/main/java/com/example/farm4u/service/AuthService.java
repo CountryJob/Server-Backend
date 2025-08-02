@@ -35,13 +35,15 @@ public class AuthService {
     public String sendAuthCode(String phone) {
         String code = generateRandomCode();
         authRepository.saveVerificationCode(phone, code, 180); // 3분
-        smsService.sendSms(phone, code);
+        // TODO: 실제로는 sendSms 개발 중에만 sendSmsDev
+        smsService.sendSmsDev(phone, code);
+//        smsService.sendSms(phone, code);
         return code;
     }
 
-    /** 인증번호 검증 + 성공 시 자동 로그인 */
+    /** 인증번호 검증 + 성공 시 자동 로그인||회원가입 */
     @Transactional
-    public AuthResponse verifyCode(String phoneNumber, String code, String mode){
+    public AuthResponse verifyCodeAndLogin(String phoneNumber, String code, String mode){
         
         // 인증번호 검증
         String savedCode = authRepository.getVerificationCode(phoneNumber);
@@ -62,7 +64,7 @@ public class AuthService {
 
         String token = jwtProvider.createToken(user.getId());
 
-//        authRepository.deleteVerificationCode(phoneNumber);
+        authRepository.deleteVerificationCode(phoneNumber);
         return new AuthResponse(token, user.getId());
     }
 

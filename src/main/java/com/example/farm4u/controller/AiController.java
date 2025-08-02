@@ -4,9 +4,11 @@ import com.example.farm4u.dto.ai.AutoRateReviewRequest;
 import com.example.farm4u.dto.ai.AutoWriteJobRequest;
 import com.example.farm4u.dto.job.JobDto;
 import com.example.farm4u.service.AiService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/ai")
@@ -44,15 +46,18 @@ public class AiController {
     /**
      * 3. 공고 자동 작성
      * - AI가 농가/상황 기반으로 자동 문구, 조건 등 제안
+     * - job쪽에서 job create 요청 시 한번에 처리
      */
-    @PostMapping("/auto-write/job")
-    public ResponseEntity<JobDto> autoWriteJob(
-            @AuthenticationPrincipal Long userId,
-            @RequestBody AutoWriteJobRequest req
-    ) {
-        JobDto posting = aiService.autoWriteJob(userId, req);
-        return ResponseEntity.ok(posting);
-    }
+//    @PostMapping("/auto-write/job")
+//    public ResponseEntity<JobDto> autoWriteJob(
+//            @AuthenticationPrincipal Long userId,
+//            @RequestParam("type") String type,                // 요청받은 문자열 파라미터
+//            @RequestParam("audio") MultipartFile audioFile
+//    ) {
+//        JobDto posting = aiService.autoWriteJob(userId, type, audioFile);
+//
+//        return ResponseEntity.ok(posting);
+//    }
 
     /**
      * 4. 후기 기반 신뢰 점수 업데이트 (비동기/백그라운드 트리거)
@@ -62,7 +67,7 @@ public class AiController {
      */
     @PostMapping("/auto-rate/review")
     public ResponseEntity<Void> autoRateReview(@RequestBody AutoRateReviewRequest req) {
-        aiService.updateTrustScoreAsync(req.getTargetId(), req.getReviewId(), req.getTargetType());
+        aiService.updateAiScoreAsync(req.getTargetId(), req.getReviewId(), req.getTargetType());
         return ResponseEntity.accepted().build(); // 202 Accepted: 비동기 요청
     }
 }

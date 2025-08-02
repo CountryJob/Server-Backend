@@ -11,7 +11,7 @@ import java.util.Set;
 @Getter @Setter @NoArgsConstructor
 public class WorkerRequest {
     private String name;
-    private Worker.Gender gender;
+    private String gender;
     private Date birth;
     private String address;
     private String activeArea;

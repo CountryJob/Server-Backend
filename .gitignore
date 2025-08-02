@@ -59,6 +59,7 @@ logs/
 
 # env
 src/main/resources/application.properties
+src/main/resources/application-dev.properties
 application.properties
 application-dev.properties
 application-prod.properties

@@ -1,12 +1,21 @@
 package com.example.farm4u;
 
 import com.example.farm4u.dto.job.JobDto;
-import com.example.farm4u.dto.ai.AutoWriteJobRequest;
+import com.example.farm4u.dto.job.JobRequest;
+import com.example.farm4u.dto.review.ReviewDto;
+import com.example.farm4u.dto.worker.WorkerDto;
+import com.example.farm4u.entity.Worker;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @Component
@@ -18,94 +27,218 @@ public class AiClient {
     private String aiServerBaseUrl; // 포트 번호 분리해 설정하기 ex) 8000
 
     // 1. 추천받기: 구직자용
-    public List<JobDto> recommendJobsForWorker(Long workerUserId) {
-        String url = aiServerBaseUrl + "/recommend/jobs";
-        Map<String, Object> body = Map.of("userId", workerUserId);
-        ResponseEntity<JobDto[]> response = restTemplate.postForEntity(url, body, JobDto[].class);
-        return response.getBody() != null ? Arrays.asList(response.getBody()) : List.of();
-    }
+    /**
+     * req:
+     *  - worker의 gender, has_farm_exp, ai_score, work_days
+     *  - 전체 jobs (JobDto 등)
+     * res: Map<Long, Double> (jobId별 추천 점수)
+     */
+    public Map<Long, Double> recommendJobsForWorker(Worker.Gender gender, Boolean hasFarmExp, Double aiScore, Set<Worker.WorkDay> workDays, List<JobDto> allJobs) {
+        String url = aiServerBaseUrl + "/recommend/jobs-to-worker";
 
-    // 2. 추천받기: 농가용
-    // 특정 공고에 대한 추천 구직자 리스트.. hmm..
-//    public List<WorkerDto> recommendWorkersForFarmer(Long farmerUserId) {
-//        String url = aiServerBaseUrl + "/recommend/workers";
-//        Map<String, Object> body = Map.of("userId", farmerUserId);
-//        ResponseEntity<WorkerDto[]> response = restTemplate.postForEntity(url, body, WorkerDto[].class);
-//        return response.getBody() != null ? Arrays.asList(response.getBody()) : List.of();
-//    }
-
-    // 특정 공고에 대한 특정 구직자의 matching score
-    public Double recommendWorkersForFarmer(Long farmerUserId, Long workerUserId) {
-        String url = aiServerBaseUrl + "/recommend/workers";
-        Map<String, Object> body = Map.of("userId", farmerUserId);
-        ResponseEntity<Double> response = restTemplate.postForEntity(url, body, Double.class);
-        return response.getBody() != null ? response.getBody() : 0;
-    }
-
-    // 특정 공고에 대한 전체 구직자의 matching score (Batch로 처리)
-    public Map<Long, Double> getBatchMatchScores(Long farmerId, Long jobId, List<Long> workerIds) {
-        String url = aiServerBaseUrl + "/recommend/workers/batch";
-
-        // 요청 body 생성
         Map<String, Object> body = new HashMap<>();
-        body.put("farmerId", farmerId);
-        body.put("jobId", jobId);
-        body.put("workerIds", workerIds);
+        body.put("gender", gender);
+        body.put("has_farm_exp", hasFarmExp);
+        body.put("ai_score", aiScore);
+        body.put("work_days", workDays);
+        body.put("jobs", allJobs);
 
-        // 헤더: JSON 명시
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // HttpEntity로 합성
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        // 응답은 {workerId: matchScore, ...} Map 형태로 내려온다고 가정
-        // AI 서버 응답 예시 = {"101": 0.93, "102": 0.72, ...} 식의 workerId별 점수 map 이어야함
+        // 응답: { jobId: score, ... }
         ResponseEntity<Map> response = restTemplate.postForEntity(url, requestEntity, Map.class);
 
-        // Map<Long, Double> 형태로 변환
         Map result = response.getBody();
-        Map<Long, Double> matchScores = new HashMap<>();
+        Map<Long, Double> scores = new HashMap<>();
+        if (result != null) {
+            for (Object key : result.keySet()) {
+                Long jobId = Long.valueOf(key.toString());
+                Double score = result.get(key) != null ? Double.valueOf(result.get(key).toString()) : 0.0;
+                scores.put(jobId, score);
+            }
+        }
+        return scores;
+    }
+
+    // 2. 추천받기: 농가용
+    // 특정 공고에 대한 전체 구직자의 matching score (Batch로 처리)
+
+    /**
+     * req:
+     *  - job의 start_date, end_date, experience_required, recruit_count_male, recruit_count_female
+     *  - 전체 workers (WorkerDto 등)
+     * res: Map<Long, Double>  (workerId별 매칭점수)
+     */
+    public Map<Long, Double> getBatchMatchScores(
+            String startDate,
+            String endDate,
+            Boolean experienceRequired,
+            Integer recruitCountMale,
+            Integer recruitCountFemale,
+            List<WorkerDto> allWorkers
+    ) {
+        String url = aiServerBaseUrl + "/recommend/workers-to-job";
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("start_date", startDate);
+        body.put("end_date", endDate);
+        body.put("experience_required", experienceRequired);
+        body.put("recruit_count_male", recruitCountMale);
+        body.put("recruit_count_female", recruitCountFemale);
+        body.put("workers", allWorkers);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        // 응답: { workerId: score, ... }
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, requestEntity, Map.class);
+
+        Map result = response.getBody();
+        Map<Long, Double> scores = new HashMap<>();
         if (result != null) {
             for (Object key : result.keySet()) {
                 Long workerId = Long.valueOf(key.toString());
                 Double score = result.get(key) != null ? Double.valueOf(result.get(key).toString()) : 0.0;
-                matchScores.put(workerId, score);
+                scores.put(workerId, score);
             }
         }
-        return matchScores;
+        return scores;
     }
 
+    /**
+     // 특정 공고에 대한 특정 구직자의 matching score
+     public Double recommendWorkersForFarmer(Long farmerUserId, Long workerUserId) {
+     String url = aiServerBaseUrl + "/recommend/workers";
+     Map<String, Object> body = Map.of("userId", farmerUserId);
+     ResponseEntity<Double> response = restTemplate.postForEntity(url, body, Double.class);
+     return response.getBody() != null ? response.getBody() : 0;
+     }*/
 
     // 3. 공고 자동작성 요청
-    public JobDto autoWriteJob(Long farmerUserId, AutoWriteJobRequest req) {
-        String url = aiServerBaseUrl + "/auto-write/job";
-        Map<String, Object> body = new HashMap<>();
-        body.put("userId", farmerUserId);
-        body.put("input", req); // req 객체가 직렬화 가능해야 함
-        ResponseEntity<JobDto> response = restTemplate.postForEntity(url, body, JobDto.class);
+    // AI 서버에게 Multipart 음성 파일 한 번에 전달 -> JobDto 전체 반환
+    public JobDto autoWriteJob(MultipartFile audioFile) throws IOException {
+        String url = aiServerBaseUrl + "/auto-filled/predict";
+
+//        File tempFile = File.createTempFile("audioFileTemp", ".webm");
+        File tempFile = File.createTempFile("audioFileTemp", ".mp4");
+        audioFile.transferTo(tempFile);
+        FileSystemResource fileResource = new FileSystemResource(tempFile);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("audioFile", fileResource);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        ResponseEntity<JobDto> response = restTemplate.postForEntity(url, requestEntity, JobDto.class);
+
+        tempFile.delete(); // 임시 파일 정리
         return response.getBody();
     }
 
-    // 4. 후기 신뢰점수 요청 (비동기 트리거)
-    public void autoRateReview(Long targetId, Long reviewId, String targetType) {
-        String url;
-        Map<String, Object> body = new HashMap<>();
-        body.put("targetId", targetId);
-        body.put("reviewId", reviewId);
+    // 1) 필드별 음성 인식
+    // req: question_key(ex. work_type), audio_file
+    // res: key, transcribed(String) -> jobId의 key 필드를 transcribed로 저장해야함 (아니면 아예 그냥 프론트로 일단 반환)
+    public String autoWriteField(String questionKey, MultipartFile audioFile) throws IOException{
+        String url = aiServerBaseUrl + "/voice/ask-and-transcribe";
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("question_key", questionKey);
 
-        // 타겟 타입에 따라 각각 다른 AI 서버 엔드포인트나 파라미터로 분기
+        // MultipartFile을 임시 파일로 변환
+        File tempFile = File.createTempFile("voice", ".webm");
+        audioFile.transferTo(tempFile);
+        FileSystemResource fileResource = new FileSystemResource(tempFile);
+        body.add("audio", fileResource);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, requestEntity, Map.class);
+        tempFile.delete();
+
+        // res: { "key": ..., "transcribed": ... }
+        Map<String, Object> res = response.getBody();
+        if (res == null) throw new RuntimeException("AI 필드 인식 응답 오류");
+        return (String) res.get("transcribed");
+    }
+
+    // 2)
+    // req: null이 아닌(응답으로 받은) jobDto 필드
+    //- title
+    //- area_size
+    //- start_date
+    //- end_date
+    //- work_time -> start_time, end_time
+    // res: jobDto 전체 필드
+    //- description
+    //- salary_male
+    //- salary_female
+    //- recruit_count_male
+    //- recruit_count_female
+    public JobDto autoWrite(JobRequest jobRequest) {
+        String url = aiServerBaseUrl + "/auto-filled/predict";
+
+        // 요청 데이터 준비
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("title", jobRequest.getTitle());
+        body.add("area_size", jobRequest.getAreaSize());
+        body.add("start_date", jobRequest.getStartDate());
+        body.add("end_date", jobRequest.getEndDate());
+        body.add("start_time", jobRequest.getStartTime());
+        body.add("end_time", jobRequest.getEndTime());
+
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        ResponseEntity<JobDto> response = restTemplate.postForEntity(
+                url,
+                new org.springframework.http.HttpEntity<>(body, headers),
+                JobDto.class
+        );
+        return response.getBody();
+    }
+
+    // 4. AI 점수 요청 (비동기 트리거)
+    public Double autoRateReview(Long targetId, ReviewDto reviewDto, String targetType) {
+        String url = aiServerBaseUrl + "/auto-rate/review";
+
+        Map<String, Object> aiRequest = new HashMap<>();
+        aiRequest.put("userId", targetId);
+        aiRequest.put("targetType", targetType);
+        aiRequest.put("content", reviewDto.getContent());
+
         if ("WORKER".equalsIgnoreCase(targetType)) {
-            url = aiServerBaseUrl + "/auto-rate/review/worker";
-            // 필요시 추가 데이터
+            aiRequest.put("sincerity_rating", reviewDto.getSincerityRating());
+            aiRequest.put("promise_rating", reviewDto.getPromiseRating());
+            aiRequest.put("skill_rating", reviewDto.getSkillRating());
+            aiRequest.put("rehire_rating", reviewDto.getRehireRating());
         } else if ("FARMER".equalsIgnoreCase(targetType)) {
-            url = aiServerBaseUrl + "/auto-rate/review/farmer";
-            // 필요시 추가 데이터
+            aiRequest.put("communication_rating", reviewDto.getCommunicationRating());
+            aiRequest.put("environment_rating", reviewDto.getEnvironmentRating());
+            aiRequest.put("clarity_rating", reviewDto.getClarityRating());
+            aiRequest.put("reward_rating", reviewDto.getRewardRating());
         } else {
             throw new IllegalArgumentException("지원하지 않는 targetType: " + targetType);
         }
 
-        restTemplate.postForEntity(url, body, Void.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        ResponseEntity<Double> response = restTemplate.postForEntity(
+                url,
+                new org.springframework.http.HttpEntity<>(aiRequest, headers),
+                Double.class
+        );
+
+        return response.getBody() != null ? response.getBody() : 0.0;
     }
 
 }

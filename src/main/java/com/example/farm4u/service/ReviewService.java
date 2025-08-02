@@ -29,15 +29,17 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final WorkerRepository workerRepository;
     private final FarmerRepository farmerRepository;
+    private final AiService aiService;
 
     public ReviewService(ReviewRepository reviewRepository,
                          UserRepository userRepository,
                          WorkerRepository workerRepository,
-                         FarmerRepository farmerRepository) {
+                         FarmerRepository farmerRepository, AiService aiService) {
         this.reviewRepository = reviewRepository;
         this.userRepository = userRepository;
         this.workerRepository = workerRepository;
         this.farmerRepository = farmerRepository;
+        this.aiService = aiService;
     }
 
     /**
@@ -88,11 +90,14 @@ public class ReviewService {
         if ("WORKER".equalsIgnoreCase(userMode)) {
             // worker가 job에 남긴 리뷰는 farmReview 집계(공고 소유주 farmer에 대해)
             Long farmerUserId = userRepository.findFarmerUserIdByJobId(req.getJobId());
-            if (farmerUserId != null)
-                updateFarmerReviewAggregates(farmerUserId);
+            if (farmerUserId != null) {
+//                updateFarmerReviewAggregates(farmerUserId);
+                aiService.updateAiScoreAsync(farmerUserId, saved.getId(), "FARMER");
+            }
         } else {
             // 농가가 worker에 남긴 리뷰면 worker 집계
-            updateWorkerReviewAggregates(req.getWorkerUserId());
+//            updateWorkerReviewAggregates(req.getWorkerUserId());
+            aiService.updateAiScoreAsync(review.getWorkerUserId(), review.getId(), "WORKER");
         }
 
         return new ReviewDto(saved);
@@ -120,11 +125,14 @@ public class ReviewService {
         if (review.getWorkerUserId() == null) {
             // worker→job 리뷰: 집계는 job 소유주(farmer)에!
             Long farmerUserId = userRepository.findFarmerUserIdByJobId(review.getJobId());
-            if (farmerUserId != null)
-                updateFarmerReviewAggregates(farmerUserId);
+            if (farmerUserId != null) {
+//                updateFarmerReviewAggregates(farmerUserId);
+                aiService.updateAiScoreAsync(farmerUserId, review.getId(), "FARMER");
+            }
         } else {
             // 농가→worker 리뷰: worker 집계
-            updateWorkerReviewAggregates(review.getWorkerUserId());
+//            updateWorkerReviewAggregates(review.getWorkerUserId());
+            aiService.updateAiScoreAsync(review.getWorkerUserId(), review.getId(), "WORKER");
         }
 
         return new ReviewDto(review);
@@ -142,10 +150,13 @@ public class ReviewService {
         // 집계반영
         if (review.getWorkerUserId() == null) {
             Long farmerUserId = userRepository.findFarmerUserIdByJobId(review.getJobId());
-            if (farmerUserId != null)
-                updateFarmerReviewAggregates(farmerUserId);
+            if (farmerUserId != null) {
+//                updateFarmerReviewAggregates(farmerUserId);
+                aiService.updateAiScoreAsync(farmerUserId, review.getId(), "FARMER");
+            }
         } else {
-            updateWorkerReviewAggregates(review.getWorkerUserId());
+//            updateWorkerReviewAggregates(review.getWorkerUserId());
+            aiService.updateAiScoreAsync(review.getWorkerUserId(), review.getId(), "WORKER");
         }
     }
 

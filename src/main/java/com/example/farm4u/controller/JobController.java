@@ -3,13 +3,17 @@ package com.example.farm4u.controller;
 import com.example.farm4u.dto.job.JobDto;
 import com.example.farm4u.dto.worker.WorkerDto;
 import com.example.farm4u.dto.job.JobRequest;
+import com.example.farm4u.service.AiService;
 import com.example.farm4u.service.JobService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 공고 API 컨트롤러
@@ -20,22 +24,50 @@ import java.util.List;
 public class JobController {
 
     private final JobService jobService;
+    private final AiService aiService;
 
-    public JobController(JobService jobService) {
+    public JobController(JobService jobService, AiService aiService) {
         this.jobService = jobService;
+        this.aiService = aiService;
     }
 
-    /** 1. 공고 등록 (관리자/농가만) */
-    @PostMapping
-    public ResponseEntity<JobDto> createJob(
+    /** 1. 공고 등록 (본인(농장주)) */
+    @PostMapping("/auto-write")
+    public ResponseEntity<JobDto> createAndAutoWriteJob(
             @AuthenticationPrincipal Long userId,
-            @RequestBody JobRequest request
-    ) {
-        JobDto created = jobService.createJob(userId, request);
+            @RequestPart MultipartFile audioFile
+    ) throws IOException {
+        JobDto created = jobService.autoWriteAndCreateJob(userId, audioFile);
         return ResponseEntity.ok(created);
     }
 
-    /** 2. 공고 수정 (본인/관리자만) */
+    // 1) 질문-답변 당 AI 필드 변환
+//    @PostMapping("/auto-write/field")
+//    public ResponseEntity<Map<String, String>> autoWriteField(
+//            @RequestParam String questionKey,
+//            @RequestPart MultipartFile audioFile
+//    ) throws IOException {
+//        String transcribed = jobService.autoWriteField(questionKey, audioFile);
+//        Map<String, String> result = Map.of(
+//                "key", questionKey,
+//                "transcribed", transcribed
+//        );
+//
+//        // 프론트에서 각 질문별로 해당 API 호출 후 결과(key, transcribed)로 저장
+//        return ResponseEntity.ok(result);
+//    }
+    
+    // 2) 전체 필드에 대해 자동작성 후 저장
+//    @PostMapping
+//    public ResponseEntity<JobDto> createJob(
+//            @AuthenticationPrincipal Long userId,
+//            @RequestBody JobRequest request // -> 음성파일을 받도록 수정하기
+//    ) {
+//        JobDto created = jobService.createJob(userId, request);
+//        return ResponseEntity.ok(created);
+//    }
+
+    /** 2. 공고 수정 (본인) */
     @PutMapping("/{id}")
     public ResponseEntity<JobDto> updateJob(
             @AuthenticationPrincipal Long userId,
@@ -82,19 +114,17 @@ public class JobController {
             @RequestParam(value = "startDateTo", required = false) LocalDate startDateTo,
             @RequestParam(value = "sort", required = false) String sort
     ) {
-        List<JobDto> jobs = jobService.getJobList(
-                userMode, lat, lng, radius,
+        List<JobDto> jobs = jobService.getJobList(userMode, lat, lng, radius,
                 experienceRequired, salaryMaleMin, salaryFemaleMin,
-                startDateFrom, startDateTo, sort
-        );
+                startDateFrom, startDateTo, sort, userId);
         return ResponseEntity.ok(jobs);
     }
 
     /** 6. 특정 공고 상세 */
     @GetMapping("/{id}")
     public ResponseEntity<JobDto> getJobDetail(@PathVariable Long id) {
-        JobDto job = jobService.getJobById(id);
-        return ResponseEntity.ok(job);
+        JobDto jobDto = jobService.getJobById(id);
+        return ResponseEntity.ok(jobDto);
     }
 
     /**

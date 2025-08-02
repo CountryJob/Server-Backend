@@ -25,7 +25,7 @@ public class WorkerService {
         Worker worker = Worker.builder()
                 .userId(userId)
                 .name(req.getName())
-                .gender(req.getGender())
+                .gender(Worker.Gender.valueOf(req.getGender()))
                 .birth(req.getBirth())
                 .address(req.getAddress())
                 .activeArea(req.getActiveArea())
@@ -46,7 +46,7 @@ public class WorkerService {
         Worker worker = workerRepository.findByIdAndDeletedFalse(userId)
                 .orElseThrow(() -> new NotFoundException("구직자 프로필"));
         if (req.getName() != null) worker.setName(req.getName());
-        if (req.getGender() != null) worker.setGender(req.getGender());
+        if (req.getGender() != null) worker.setGender(Worker.Gender.valueOf(req.getGender()));
         if (req.getBirth() != null) worker.setBirth(req.getBirth());
         if (req.getAddress() != null) worker.setAddress(req.getAddress());
         if (req.getActiveArea() != null) worker.setActiveArea(req.getActiveArea());

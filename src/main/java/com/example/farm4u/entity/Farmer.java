@@ -62,8 +62,8 @@ public class Farmer extends BaseEntity {
     @Column(name = "report_count", nullable = false)
     private Integer reportCount = 0;
 
-    @Column(name = "trust_score", columnDefinition = "INT CHECK(trust_score BETWEEN 0 AND 100)")
-    private Integer trustScore;
+    @Column(name = "ai_score", columnDefinition = "DOUBLE CHECK(ai_score BETWEEN 0 AND 100)")
+    private Double aiScore;
 
     @Column(nullable = false)
     private Boolean deleted = false;
@@ -71,6 +71,7 @@ public class Farmer extends BaseEntity {
     @PrePersist
     protected void init(){
         if (this.reviewCount == null) this.reviewCount = 0;
+        if (this.reportCount == null) this.reportCount = 0;
         if (this.deleted == null) this.deleted = false;
     }
 }

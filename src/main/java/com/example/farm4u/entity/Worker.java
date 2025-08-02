@@ -6,6 +6,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 @AllArgsConstructor @Builder
 @NoArgsConstructor
@@ -90,8 +91,8 @@ public class Worker extends BaseEntity {
     @Column(name = "report_count", nullable = false)
     private Integer reportCount = 0;
 
-    @Column(name = "trust_score", columnDefinition = "INT CHECK(trust_score BETWEEN 0 AND 100)")
-    private Integer trustScore;
+    @Column(name = "ai_score", columnDefinition = "DOUBLE CHECK(ai_score BETWEEN 0 AND 100)")
+    private Double aiScore;
 
     @Column(nullable = false)
     private Boolean deleted = false;
@@ -103,4 +104,12 @@ public class Worker extends BaseEntity {
     public enum FarmExpTask { GROW, MANAGE, HARVEST, PACK, ETC }
     public enum WorkIntensity{ LIGHT, MEDIUM, ACTIVE }
 
+    @PrePersist
+    protected void init(){
+        if (reviewCount == null) reviewCount = 0;
+        if (reportCount == null) reportCount = 0;
+        if (deleted == null) deleted = false;
+        StringTokenizer st = new StringTokenizer(address);
+        activeArea = st.nextToken();
+    }
 }

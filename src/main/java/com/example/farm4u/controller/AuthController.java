@@ -35,13 +35,12 @@ public class AuthController {
         String code = authService.sendAuthCode(request.getPhoneNumber());
         return ResponseEntity.ok(code);
     }
-
     /** 인증번호 검증 
      * 신규면 가입 + mode 동시 처리
      * */
     @PostMapping("/verify-code")
     public ResponseEntity<AuthResponse> verifyAuthCode(@RequestBody AuthVerifyRequest request){
-        return ResponseEntity.ok(authService.verifyCode(request.getPhoneNumber(), request.getCode(), request.getMode()));
+        return ResponseEntity.ok(authService.verifyCodeAndLogin(request.getPhoneNumber(), request.getCode(), request.getMode()));
     }
 
     /** 로그아웃 */
