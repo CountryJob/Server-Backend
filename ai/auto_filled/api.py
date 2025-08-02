@@ -1,7 +1,6 @@
 from fastapi import APIRouter, UploadFile, Form, HTTPException
 from pydantic import BaseModel
-from fastapi.responses import JSONResponse
-from datetime import date
+from datetime import datetime, date
 import os, json
 
 from ai.voice.stt_module import transcribe_audio
@@ -12,6 +11,19 @@ router = APIRouter()
 
 AUDIO_DIR = "ai/voice/audio"
 OUTPUT_JSON = "ai/voice/job_posting_result.json"
+
+def safe_parse_date(val):
+    if isinstance(val, date):
+        return val
+    elif isinstance(val, datetime):
+        return val.date()
+    elif isinstance(val, str):
+        # ISO 8601 처리: '2025-08-02T20:22:14.903Z' → '2025-08-02'
+        cleaned = val.strip().replace("Z", "")
+        return date.fromisoformat(cleaned[:10])
+    else:
+        raise ValueError(f"Invalid date format: {val} ({type(val)})")
+
 
 class AutoFilledResponse(BaseModel):
     title: str
@@ -28,27 +40,38 @@ class AutoFilledResponse(BaseModel):
     salaryFemale: int
     recruitCountMale: int
     recruitCountFemale: int
+    experienceRequired: bool
+
 
 @router.post("/predict", response_model=AutoFilledResponse)
 async def auto_filled_predict(audio_file: UploadFile = Form(...)):
     try:
         # 1. 오디오 저장
-        file_path = os.path.join(AUDIO_DIR, "full_response.m4a")
+        os.makedirs(AUDIO_DIR, exist_ok=True)
+        file_path = os.path.join(AUDIO_DIR, "full_response.webm")
         with open(file_path, "wb") as f:
             f.write(await audio_file.read())
 
         # 2. STT 처리
         transcribed = transcribe_audio(file_path)
 
-        # 3. LLM으로 정보 정제
+        # 3. LLM 정보 정제
         summarized_text = summarize_to_json(transcribed)
         with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
             f.write(summarized_text)
         info = json.loads(summarized_text)
 
         # 4. 작업 기간 계산
-        start_date = date.fromisoformat(info["start_date"])
-        end_date = date.fromisoformat(info["end_date"])
+        print("Raw start_date:", info["start_date"], type(info["start_date"]))
+        print("Raw end_date:", info["end_date"], type(info["end_date"]))
+
+        start_date = safe_parse_date(info["start_date"])
+        end_date = safe_parse_date(info["end_date"])
+
+        print("Parsed start_date:", start_date, type(start_date))
+        print("Parsed end_date:", end_date, type(end_date))
+        print("🎙 STT transcribed text:", transcribed)
+
         duration_days = (end_date - start_date).days + 1
         if duration_days <= 0:
             raise ValueError("`end_date` must be after `start_date`.")
@@ -67,7 +90,7 @@ async def auto_filled_predict(audio_file: UploadFile = Form(...)):
             verbose=False
         )
 
-        # 7. 카멜케이스 응답 구성
+        # 7. 응답 구성 (CamelCase)
         response_data = {
             "title": info["title"],
             "startDate": info["start_date"],
@@ -78,11 +101,12 @@ async def auto_filled_predict(audio_file: UploadFile = Form(...)):
             "meal": info["meal"],
             "snack": info["snack"],
             "transportAllowance": info["transport_allowance"],
+            "experienceRequired": info["experienceRequired"],
             "description": prediction["description"],
             "salaryMale": prediction["salary_male"],
             "salaryFemale": prediction["salary_female"],
             "recruitCountMale": prediction["recruit_count_male"],
-            "recruitCountFemale": prediction["recruit_count_female"]
+            "recruitCountFemale": prediction["recruit_count_female"],
         }
 
         return response_data

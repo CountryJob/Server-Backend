@@ -22,11 +22,13 @@ def summarize_to_json(transcribed: str):
     - meal: 점심 식사 제공 여부 (true/false)
     - snack: 간식 제공 여부 (true/false)
     - transport_allowance: 교통비 제공 여부 (true/false)
+    - experienceRequired: 경험 필요 여부 (true/false) # 얘는 농작업 종류에 따라 추론
 
     **주의사항**
     - 날짜와 시간은 명확하게 포맷에 맞춰주세요.
     - 연도가 언급되지 않은 경우, 기본적으로 **2025년**으로 간주하여 날짜를 작성해주세요.
     - JSON 이외의 설명 없이 순수 JSON만 반환해주세요.
+    - 만약 응답에서 필요한 정보가 누락되었다면 임의의 값으로 채워줘
 
     사용자 응답:
     {transcribed}
