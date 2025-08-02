@@ -25,6 +25,8 @@ public class Job extends BaseEntity {
         if (recruitCountFemale == null) recruitCountFemale = 0;
         if (experienceRequired == null) experienceRequired = false;
         if (deleted == null) deleted = false;
+        if (aiScore == null) aiScore = (double) 100;
+        // address -> farmer userId로 service단에서 처리
     }
 
     @Id

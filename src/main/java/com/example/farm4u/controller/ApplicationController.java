@@ -57,7 +57,7 @@ public class ApplicationController {
         return ResponseEntity.ok().build();
     }
 
-    /** 5. 지원하기 (Admin/Worker 본인) */
+    /** 5. 지원하기 (Worker 본인) */
     @PostMapping
     public ResponseEntity<Void> apply(
             @AuthenticationPrincipal Long userId,

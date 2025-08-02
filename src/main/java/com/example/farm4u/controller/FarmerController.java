@@ -59,10 +59,11 @@ public class FarmerController {
     /** 농가 리스트 전체 조회 */
     @GetMapping("/list")
     public ResponseEntity<List<FarmerResponse>> listFarmers(@AuthenticationPrincipal Long userId) {
-        UserResponse user = userService.getUserById(userId);
-        if (user.getCurrentMode() != "ADMIN"){
-            throw new AccessException("관리자");
-        }
+        // 실제 - 주석 제거
+//        UserResponse user = userService.getUserById(userId);
+//        if (user.getCurrentMode() != "ADMIN"){
+//            throw new AccessException("관리자");
+//        }
         return ResponseEntity.ok(farmerService.listFarmers());
     }
 

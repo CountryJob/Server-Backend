@@ -12,13 +12,13 @@ import java.util.Set;
 public class WorkerRequest {
     private String name;
     private String gender;
-    private Date birth;
+    private String birth;
     private String address;
     private String activeArea;
-    private Worker.WorkType workType;
-    private Set<Worker.WorkDay> workDays;
+    private String workType;
+    private Set<String> workDays;
     private Boolean hasFarmExp;
-    private Set<Worker.FarmExpType> farmExpTypes;
-    private Set<Worker.FarmExpTask> farmExpTasks;
-    private Worker.WorkIntensity workIntensity;
+    private Set<String> farmExpTypes;
+    private Set<String> farmExpTasks;
+    private String workIntensity;
 }

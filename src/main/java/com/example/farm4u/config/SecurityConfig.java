@@ -18,9 +18,15 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))         // 세션 사용 안 함(JWT만)
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/v0/auth/request-code", "/api/v0/auth/verify-code", "/error").permitAll() // 비로그인 허용 API
+//                        // 비로그인 허용 API
+                        auth.requestMatchers("/api/v0/auth/request-code", "/api/v0/auth/verify-code", "/error").permitAll()
+                                .requestMatchers("/api/v0/users/**", "/api/v0/farmers/**", "/api/v0/farmers/list",
+                                        "/api/v0/workers/**", "/api/v0/workers/list",
+                                        "/api/v0/notifications/internal", "/api/v0/reports").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()   // 문서/테스트 툴도 예외
-                        .anyRequest().authenticated()                                           // 그 외는 인증 필요)
+//                        // 그 외는 인증 필요
+                        .anyRequest().authenticated()
+//                        auth.anyRequest().permitAll() // 전체 비로그인 허용 (개발 테스트)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

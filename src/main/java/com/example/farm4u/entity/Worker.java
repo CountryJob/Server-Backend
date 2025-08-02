@@ -91,8 +91,8 @@ public class Worker extends BaseEntity {
     @Column(name = "report_count", nullable = false)
     private Integer reportCount = 0;
 
-    @Column(name = "ai_score", columnDefinition = "DOUBLE CHECK(ai_score BETWEEN 0 AND 100)")
-    private Double aiScore;
+    @Column(name = "trust_score", columnDefinition = "DOUBLE CHECK(trust_score BETWEEN 0 AND 100)")
+    private Double trustScore;
 
     @Column(nullable = false)
     private Boolean deleted = false;
@@ -111,5 +111,6 @@ public class Worker extends BaseEntity {
         if (deleted == null) deleted = false;
         StringTokenizer st = new StringTokenizer(address);
         activeArea = st.nextToken();
+        // address-> lat, long 자동 계산도 추가
     }
 }

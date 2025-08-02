@@ -32,10 +32,9 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUser(
-//            @AuthenticationPrincipal User user,
             @PathVariable Long id) {
 
-        // 실제 운영 시 주석 제거
+        // 실제 - 주석 제거
 //        if (!user.getCurrentMode().equals(User.Mode.ADMIN)) {
 //            throw new AccessDeniedException("관리자만 접근 가능합니다.");
 //        }

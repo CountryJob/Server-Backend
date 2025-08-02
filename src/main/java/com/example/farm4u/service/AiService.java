@@ -82,13 +82,13 @@ public class AiService {
         if ("WORKER".equalsIgnoreCase(targetType)) {
             Worker worker = workerRepository.findById(targetId)
                     .orElseThrow(() -> new NotFoundException("근로자 없음: " + targetId));
-            worker.setAiScore(aiScore);
+            worker.setTrustScore(aiScore);
             workerRepository.save(worker);
         }
         else if ("FARMER".equalsIgnoreCase(targetType)) {
             Farmer farmer = farmerRepository.findByUserId(targetId)
                     .orElseThrow(() -> new NotFoundException("농가 없음: " + targetId));
-            farmer.setAiScore(aiScore);
+            farmer.setTrustScore(aiScore);
             farmerRepository.save(farmer);
         }
     }

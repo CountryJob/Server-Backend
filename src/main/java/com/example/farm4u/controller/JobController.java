@@ -6,6 +6,7 @@ import com.example.farm4u.dto.job.JobRequest;
 import com.example.farm4u.service.AiService;
 import com.example.farm4u.service.JobService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,13 +33,25 @@ public class JobController {
     }
 
     /** 1. 공고 등록 (본인(농장주)) */
+    // 1-1. 파일로 전달받아 자동작성해 리턴
     @PostMapping("/auto-write")
-    public ResponseEntity<JobDto> createAndAutoWriteJob(
+    public ResponseEntity<JobDto> autoWriteJob(
             @AuthenticationPrincipal Long userId,
             @RequestPart MultipartFile audioFile
     ) throws IOException {
+        System.out.println("JobController: autoWriteJob(): userId = " + userId);
         JobDto created = jobService.autoWriteAndCreateJob(userId, audioFile);
         return ResponseEntity.ok(created);
+    }
+
+    // 1-2. 수정 및 확인 후 최종 공고 등록
+    @PostMapping
+    public ResponseEntity<Void> createJob(
+            @AuthenticationPrincipal Long userId,
+            @RequestBody JobDto jobDto){
+        System.out.println("JobController: createJob(): userId = " + userId);
+        jobService.createJob(userId, jobDto);
+        return ResponseEntity.ok().build();
     }
 
     // 1) 질문-답변 당 AI 필드 변환
@@ -103,20 +116,21 @@ public class JobController {
     @GetMapping
     public ResponseEntity<List<JobDto>> getJobList(
             @AuthenticationPrincipal Long userId,
-            @RequestParam(value = "userMode", required = false, defaultValue = "ANONYMOUS") String userMode,
-            @RequestParam(value = "lat", required = false) Double lat,
-            @RequestParam(value = "lng", required = false) Double lng,
-            @RequestParam(value = "radius", required = false) Double radius,
-            @RequestParam(value = "experienceRequired", required = false) Boolean experienceRequired,
-            @RequestParam(value = "salaryMaleMin", required = false) Integer salaryMaleMin,
-            @RequestParam(value = "salaryFemaleMin", required = false) Integer salaryFemaleMin,
-            @RequestParam(value = "startDateFrom", required = false) LocalDate startDateFrom,
-            @RequestParam(value = "startDateTo", required = false) LocalDate startDateTo,
+//            @RequestParam(value = "lat", required = false) Double lat,
+//            @RequestParam(value = "lng", required = false) Double lng,
+//            @RequestParam(value = "radius", required = false) Double radius,
+//            @RequestParam(value = "experienceRequired", required = false) Boolean experienceRequired,
+//            @RequestParam(value = "salaryMaleMin", required = false) Integer salaryMaleMin,
+//            @RequestParam(value = "salaryFemaleMin", required = false) Integer salaryFemaleMin,
+//            @RequestParam(value = "startDateFrom", required = false) LocalDate startDateFrom,
+//            @RequestParam(value = "startDateTo", required = false) LocalDate startDateTo,
             @RequestParam(value = "sort", required = false) String sort
     ) {
-        List<JobDto> jobs = jobService.getJobList(userMode, lat, lng, radius,
-                experienceRequired, salaryMaleMin, salaryFemaleMin,
-                startDateFrom, startDateTo, sort, userId);
+        System.out.println("job controller getJobList: userId: "+userId);
+        List<JobDto> jobs = jobService.getJobList(userId,
+//                lat, lng, radius,
+//                experienceRequired, salaryMaleMin, salaryFemaleMin, startDateFrom, startDateTo,
+                sort);
         return ResponseEntity.ok(jobs);
     }
 

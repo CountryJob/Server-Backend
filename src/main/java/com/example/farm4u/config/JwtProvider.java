@@ -9,10 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 public class JwtProvider {
@@ -26,6 +23,9 @@ public class JwtProvider {
     // secretKey는 lazy-initialize
     private SecretKey secretKey() {
         // secret이 base64로 관리되고 있음을 가정
+        System.out.println("SECRET_KEY_RAW: " + SECRET_KEY_RAW);
+        System.out.println("SECRET_KEY(Decoded bytes): " + Arrays.toString(Base64.getDecoder().decode(SECRET_KEY_RAW)));
+
         return Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY_RAW));
     }
 
@@ -48,6 +48,7 @@ public class JwtProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            System.out.println("JWT 파싱 실패: " + e.getMessage());
             return false;
         }
     }

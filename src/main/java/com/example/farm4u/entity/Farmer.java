@@ -17,16 +17,12 @@ public class Farmer extends BaseEntity {
     @Column(name = "user_id")
     private Long userId;
 
-    // 농장주명
-    @Column(name = "user_name", length = 50, nullable = false)
-    private String userName;
-
-    @Column(name = "business_number", length = 20, nullable = false, unique = true)
-    private String businessNumber;
-
     // 농장명
     @Column(length = 50, nullable = false)
     private String name;
+
+    @Column(name = "business_number", length = 20, nullable = false, unique = true)
+    private String businessNumber;
 
     @Column(length = 255, nullable = false)
     private String address;
@@ -62,8 +58,8 @@ public class Farmer extends BaseEntity {
     @Column(name = "report_count", nullable = false)
     private Integer reportCount = 0;
 
-    @Column(name = "ai_score", columnDefinition = "DOUBLE CHECK(ai_score BETWEEN 0 AND 100)")
-    private Double aiScore;
+    @Column(name = "trust_score", columnDefinition = "DOUBLE CHECK(trust_score BETWEEN 0 AND 100)")
+    private Double trustScore;
 
     @Column(nullable = false)
     private Boolean deleted = false;
@@ -73,5 +69,6 @@ public class Farmer extends BaseEntity {
         if (this.reviewCount == null) this.reviewCount = 0;
         if (this.reportCount == null) this.reportCount = 0;
         if (this.deleted == null) this.deleted = false;
+        // address -> lat, long 계산 추가
     }
 }

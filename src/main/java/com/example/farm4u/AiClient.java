@@ -33,15 +33,31 @@ public class AiClient {
      *  - 전체 jobs (JobDto 등)
      * res: Map<Long, Double> (jobId별 추천 점수)
      */
-    public Map<Long, Double> recommendJobsForWorker(Worker.Gender gender, Boolean hasFarmExp, Double aiScore, Set<Worker.WorkDay> workDays, List<JobDto> allJobs) {
+    public Map<Long, Double> recommendJobsForWorker(String gender, Boolean hasFarmExp, Double trustScore, Set<String> workDays, List<JobDto> allJobs) {
         String url = aiServerBaseUrl + "/recommend/jobs-to-worker";
 
+        Map<String, Object> workerMap = new HashMap<>();
+        workerMap.put("gender", gender);
+        workerMap.put("has_farm_exp", hasFarmExp);
+        workerMap.put("trust_score", trustScore);
+        workerMap.put("work_days", workDays);
+        workerMap.put("jobs", allJobs);
+
+        List<Map<String, Object>> jobsList = new ArrayList<>();
+        for (JobDto job : allJobs) {
+            Map<String, Object> jobMap = new HashMap<>();
+            jobMap.put("id", job.getId());
+            jobMap.put("start_date", job.getStartDate().toString());   // String or ISO
+            jobMap.put("end_date", job.getEndDate().toString());
+            jobMap.put("experience_required", job.getExperienceRequired());
+            jobMap.put("recruit_count_male", job.getRecruitCountMale());
+            jobMap.put("recruit_count_female", job.getRecruitCountFemale());
+            jobsList.add(jobMap);
+        }
+
         Map<String, Object> body = new HashMap<>();
-        body.put("gender", gender);
-        body.put("has_farm_exp", hasFarmExp);
-        body.put("ai_score", aiScore);
-        body.put("work_days", workDays);
-        body.put("jobs", allJobs);
+        body.put("worker", workerMap);
+        body.put("jobs", jobsList);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -82,12 +98,15 @@ public class AiClient {
     ) {
         String url = aiServerBaseUrl + "/recommend/workers-to-job";
 
+        Map<String, Object> jobMap = new HashMap<>();
+        jobMap.put("start_date", startDate);
+        jobMap.put("end_date", endDate);
+        jobMap.put("experience_required", experienceRequired);
+        jobMap.put("recruit_count_male", recruitCountMale);
+        jobMap.put("recruit_count_female", recruitCountFemale);
+
         Map<String, Object> body = new HashMap<>();
-        body.put("start_date", startDate);
-        body.put("end_date", endDate);
-        body.put("experience_required", experienceRequired);
-        body.put("recruit_count_male", recruitCountMale);
-        body.put("recruit_count_female", recruitCountFemale);
+        body.put("job", jobMap);
         body.put("workers", allWorkers);
 
         HttpHeaders headers = new HttpHeaders();
@@ -119,29 +138,56 @@ public class AiClient {
      return response.getBody() != null ? response.getBody() : 0;
      }*/
 
+
+
     // 3. 공고 자동작성 요청
     // AI 서버에게 Multipart 음성 파일 한 번에 전달 -> JobDto 전체 반환
-    public JobDto autoWriteJob(MultipartFile audioFile) throws IOException {
+    /**
+     * req:
+     *
+     * @param address
+     * @param audioFile res:
+     *                  {
+     *                  "title": "상추 수확",
+     *                  "startDate": "2025-08-01",
+     *                  "endDate": "2025-08-03",
+     *                  "startTime": "08:00:00",
+     *                  "endTime": "17:00:00",
+     *                  "areaSize": 50,
+     *                  "meal": true,
+     *                  "snack": true,
+     *                  "transportAllowance": false,
+     *                  "addressMatch": true,
+     *                  "description": "- 상추 수확 및 선별\n- 수확물 박스 포장 및 운반 보조\n- 작업 도구 세척 및 정리\n- 작업장 주변 환경 정돈",
+     *                  "salaryMale": 120000,
+     *                  "salaryFemale": 120000,
+     *                  "recruitCountMale": 1,
+     *                  "recruitCountFemale": 1
+     *                  }
+     */
+    public JobDto autoWriteJob(String address, MultipartFile audioFile) throws IOException {
         String url = aiServerBaseUrl + "/auto-filled/predict";
 
-//        File tempFile = File.createTempFile("audioFileTemp", ".webm");
-        File tempFile = File.createTempFile("audioFileTemp", ".mp4");
+        File tempFile = File.createTempFile("audioFileTemp", ".m4a");
         audioFile.transferTo(tempFile);
         FileSystemResource fileResource = new FileSystemResource(tempFile);
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("audioFile", fileResource);
+        body.add("audio_file", fileResource);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
         ResponseEntity<JobDto> response = restTemplate.postForEntity(url, requestEntity, JobDto.class);
+        JobDto j = response.getBody();
+        j.setAddress(address);
 
         tempFile.delete(); // 임시 파일 정리
-        return response.getBody();
+        return j;
     }
 
+    // 사용X
     // 1) 필드별 음성 인식
     // req: question_key(ex. work_type), audio_file
     // res: key, transcribed(String) -> jobId의 key 필드를 transcribed로 저장해야함 (아니면 아예 그냥 프론트로 일단 반환)
@@ -151,7 +197,7 @@ public class AiClient {
         body.add("question_key", questionKey);
 
         // MultipartFile을 임시 파일로 변환
-        File tempFile = File.createTempFile("voice", ".webm");
+        File tempFile = File.createTempFile("voice", ".m4a");
         audioFile.transferTo(tempFile);
         FileSystemResource fileResource = new FileSystemResource(tempFile);
         body.add("audio", fileResource);
@@ -169,6 +215,7 @@ public class AiClient {
         return (String) res.get("transcribed");
     }
 
+    // 사용X
     // 2)
     // req: null이 아닌(응답으로 받은) jobDto 필드
     //- title

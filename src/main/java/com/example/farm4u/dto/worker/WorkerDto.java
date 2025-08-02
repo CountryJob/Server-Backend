@@ -4,6 +4,7 @@ import com.example.farm4u.entity.Worker;
 import lombok.*;
 
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,13 +40,16 @@ public class WorkerDto {
     private Double avgSkillRating;
     private Double avgRehireRating;
     private Integer reviewCount;
-    private Double aiScore;
+    private Double trustScore;
 
     private String createdAt;            // YYYY-MM-DD HH:mm:ss
     private String updatedAt;
     private Boolean deleted;
 
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     public WorkerDto(Worker worker) {
+
         this.userId = worker.getUserId();
         this.name = worker.getName();
         this.gender = (worker.getGender() != null) ? worker.getGender().name() : null;
@@ -74,11 +78,13 @@ public class WorkerDto {
         this.avgRehireRating = (worker.getAvgRehireRating() != null) ? worker.getAvgRehireRating().doubleValue() : null;
 
         this.reviewCount = worker.getReviewCount();
-        this.aiScore = (worker.getAiScore()!=null)? worker.getAiScore() : null;
+        this.trustScore = (worker.getTrustScore()!=null)? worker.getTrustScore() : null;
         this.createdAt = (worker.getCreatedAt() != null)
-                ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(worker.getCreatedAt()) : null;
+                ? worker.getCreatedAt().format(formatter)
+                : null;
         this.updatedAt = (worker.getUpdatedAt() != null)
-                ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(worker.getUpdatedAt()) : null;
+                ? worker.getUpdatedAt().format(formatter)
+                : null;
         this.deleted = worker.getDeleted();
     }
 }

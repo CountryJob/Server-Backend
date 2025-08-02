@@ -25,7 +25,7 @@ public class FarmerService {
         this.geocodingService = geocodingService;
     }
 
-    /** (내) 농가 등록: name/businessNumber/address 필수, 주소→위경도 변환 */
+    /** (내) 농가 등록: name/businessNumber/address 필수, 주소-위경도 변환 */
     @Transactional
     public FarmerResponse registerFarmer(Long userId, FarmerRegisterRequest request) {
         if (farmerRepository.existsById(userId)) throw new DuplicateFarmerException();
@@ -36,8 +36,8 @@ public class FarmerService {
                 .name(request.getName())
                 .businessNumber(request.getBusinessNumber())
                 .address(request.getAddress())
-                .latitude(BigDecimal.valueOf(latLng[0]))
-                .longitude(BigDecimal.valueOf(latLng[1]))
+                .latitude(latLng[0] != null ? BigDecimal.valueOf(latLng[0]) : null)
+                .longitude(latLng[1] != null ? BigDecimal.valueOf(latLng[1]) : null)
                 .deleted(false)
                 .build();
 
@@ -65,6 +65,11 @@ public class FarmerService {
             builder.areaSize(request.getAreaSize());
         if (request.getDescription() != null)
             builder.description(request.getDescription());
+
+        if (request.getLatitude() != null)
+            builder.latitude(BigDecimal.valueOf(request.getLatitude()));
+        if (request.getLongitude() != null)
+            builder.longitude(BigDecimal.valueOf(request.getLongitude()));
 
         Farmer updated = farmerRepository.save(builder.build());
         return toResponse(updated);

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
 import java.util.List;
 
 @RestController
@@ -22,7 +23,7 @@ public class WorkerController {
     @PostMapping
     public ResponseEntity<Void> save(
             @AuthenticationPrincipal Long userId,
-            @RequestBody WorkerRequest req) {
+            @RequestBody WorkerRequest req) throws ParseException {
         workerService.save(userId, req);
         return ResponseEntity.ok().build();
     }
@@ -31,7 +32,7 @@ public class WorkerController {
     @PatchMapping
     public ResponseEntity<Void> update(
             @AuthenticationPrincipal Long userId,
-            @RequestBody WorkerRequest req) {
+            @RequestBody WorkerRequest req) throws ParseException {
         workerService.update(userId, req);
         return ResponseEntity.ok().build();
     }

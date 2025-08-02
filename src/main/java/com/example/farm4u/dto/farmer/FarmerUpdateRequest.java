@@ -1,6 +1,9 @@
 package com.example.farm4u.dto.farmer;
 
+import jakarta.persistence.Column;
 import lombok.Getter;
+
+import java.math.BigDecimal;
 
 @Getter
 public class FarmerUpdateRequest {
@@ -10,4 +13,6 @@ public class FarmerUpdateRequest {
     private String address;
     private Integer areaSize;
     private String description;
+    private Double latitude;
+    private Double longitude;
 }

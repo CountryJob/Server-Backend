@@ -31,6 +31,8 @@ public class UserService {
                 .deleted(false) // 가입 시 deleted = false default
                 .build();
         User saved = userRepository.save(user);
+        System.out.println("phoneNumber" + phoneNumber);
+        System.out.println("currentMode" + mode.toUpperCase());
 
         return toResponse(saved);
     }
